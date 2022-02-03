@@ -1,54 +1,59 @@
 import React from 'react';
-import Container from '@mui/material/Container';
-import { makeStyles } from '@mui/styles';
-import { useTheme } from '@mui/material/styles';
+
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
-import { ColorModeContext } from 'components/Container';
+import { useTheme } from '@mui/material/styles';
+import makeStyles from '@mui/styles/makeStyles';
+import { ColorModeContext } from 'App';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
-    const theme = useTheme();
+  const theme = useTheme();
 
-    const colorMode = React.useContext(ColorModeContext);
+  const colorMode = React.useContext(ColorModeContext);
 
-    const useStyles = makeStyles({
-        root: {
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.getContrastText(theme.palette.primary.main),
-            height: 56
-        },
+  const navigate = useNavigate();
 
-        row: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+  const useStyles = makeStyles({
+    root: {
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.getContrastText(theme.palette.primary.main),
+      height: 56
+    },
 
-            '& span': {
-                fontSize: 18,
-                fontWeight: 600
-            }
-        }
-    });
+    row: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
 
-    const classes = useStyles();
-    return (
-        <div className={classes.root}>
-            <Container>
-                <div className={classes.row}>
-                    <span>Proexe - User Management</span>
-                    <div>
-                        {theme.palette.mode} mode
-                        <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
-                          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-                        </IconButton>
-                    </div>
-                </div>
-            </Container>
+      '& span': {
+        fontSize: 18,
+        fontWeight: 600,
+        cursor: 'pointer'
+      }
+    }
+  });
+
+  const classes = useStyles();
+  return (
+    <div className={classes.root}>
+      <Container>
+        <div className={classes.row}>
+          <span onClick={() => navigate('/')}>Proexe - User Management</span>
+          <div>
+            {theme.palette.mode} mode
+            <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color='inherit'>
+              {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+          </div>
         </div>
-    )
-}
+      </Container>
+    </div>
+  );
+};
 
 export default Header;

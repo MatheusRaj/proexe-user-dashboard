@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 interface IApiResponse<T> {
-    data: T;
+  data: T;
 }
 
 const API_URL = 'https://my-json-server.typicode.com';
@@ -16,7 +16,7 @@ async function handleError(err: AxiosError) {
 
 async function request(options: AxiosRequestConfig): Promise<AxiosResponse<any>> {
   try {
-    const result = await axios({
+    return await axios({
       ...options,
       baseURL: API_URL,
       headers: {
@@ -24,8 +24,6 @@ async function request(options: AxiosRequestConfig): Promise<AxiosResponse<any>>
         ...options.headers
       }
     });
-
-    return result;
   } catch (err) {
     return (await handleError(err as any)) as any;
   }

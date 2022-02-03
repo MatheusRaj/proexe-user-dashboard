@@ -1,102 +1,107 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
+
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import { useAppDispatch, useAppSelector } from 'app/hooks';
 import Container from 'components/Container';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
-import LinearScaleIcon from '@mui/icons-material/LinearScale';
+import { IUser } from 'interfaces';
+import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
+import { useNavigate } from 'react-router-dom';
 
-function createData(
-    name: string,
-    calories: number,
-    fat: number,
-    carbs: number,
-    protein: number,
-  ) {
-    return { name, calories, fat, carbs, protein };
-  }
-  
-  const rows = [
-    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-    createData('Eclair', 262, 16.0, 24, 6.0),
-    createData('Cupcake', 305, 3.7, 67, 4.3),
-    createData('Gingerbread', 356, 16.0, 49, 3.9),
-  ];
+import { getUsers, selectUsers } from '../userSlice';
+import DeleteDialog from './DeleteDialog';
 
 const List = memo(() => {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-    setAnchorEl(null);
-    };
+  const navigate = useNavigate();
 
-    return (
-        <Container>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Username</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Id</TableCell>
-                    <TableCell>City</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => (
-                    <TableRow
-                      key={row.name}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component="th" scope="row">
-                        {row.name}
-                      </TableCell>
-                      <TableCell>{row.calories}</TableCell>
-                      <TableCell>{row.fat}</TableCell>
-                      <TableCell>{row.carbs}</TableCell>
-                      <TableCell>{row.protein}</TableCell>
-                      <TableCell align='center'>
-                        <IconButton
-                          id="basic-button"
-                          aria-controls={open ? 'basic-menu' : undefined}
-                          aria-haspopup="true"
-                          aria-expanded={open ? 'true' : undefined}
-                          onClick={handleClick}
-                        >
-                            {<LinearScaleIcon color='action' />}
-                        </IconButton>
-                        <Menu
-                          id="basic-menu"
-                          anchorEl={anchorEl}
-                          open={open}
-                          onClose={handleClose}
-                          MenuListProps={{
-                            'aria-labelledby': 'basic-button',
-                          }}
-                        >
-                          <MenuItem onClick={handleClose}>Edit</MenuItem>
-                          <MenuItem onClick={handleClose}>Delete</MenuItem>
+  const dispatch = useAppDispatch();
+
+  const userList = useAppSelector(selectUsers);
+
+  const [users, setUsers] = useState<IUser[]>([]);
+
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
+
+  const [user, setUser] = useState<IUser>({} as IUser);
+
+  const handleClickOpenDelete = (value: IUser) => {
+    setUser(value);
+    setOpenDelete(true);
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+  };
+
+  useEffect(() => {
+    if (!userList.length) {
+      dispatch(getUsers()).then(res => {
+        setUsers(res.payload as IUser[]);
+      });
+      return;
+    }
+
+    setUsers(userList);
+  }, [dispatch, userList]);
+
+  return (
+    <Container>
+      <Button onClick={() => navigate('/form')}>Add new user</Button>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Id</TableCell>
+              <TableCell>City</TableCell>
+              <TableCell align='center'>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user: IUser) => (
+              <TableRow key={user.name} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                <TableCell component='th' scope='row'>
+                  {user.name}
+                </TableCell>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.id}</TableCell>
+                <TableCell>{user.address.city}</TableCell>
+                <TableCell align='center'>
+                  <PopupState variant='popover' popupId='demo-popup-menu'>
+                    {popupState => (
+                      <React.Fragment>
+                        <Button variant='text' {...bindTrigger(popupState)}>
+                          <MoreVertIcon />
+                        </Button>
+                        <Menu {...bindMenu(popupState)}>
+                          <MenuItem onClick={() => navigate(`/form/${user.id}`)}>Edit</MenuItem>
+                          <MenuItem onClick={() => handleClickOpenDelete(user)}>Delete</MenuItem>
                         </Menu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-        </Container>
-    )
-})
+                      </React.Fragment>
+                    )}
+                  </PopupState>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <DeleteDialog open={openDelete} handleClose={handleCloseDelete} user={user} />
+    </Container>
+  );
+});
 
 export default List;
